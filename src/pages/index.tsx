@@ -1,8 +1,13 @@
 import Head from 'next/head';
-import { Box, Button, Container, styled } from '@mui/material';
+import { Box, Container, styled, Typography } from '@mui/material';
 import LogoIcon from '@/src/icons/LogoIcon';
 import PokemonFilter from '@/src/components/PokemonFilter';
-import PokemonCard from '@/src/components/PokemonCard';
+import { useGetPokemonsQuery } from '@/src/slices/pokemonApi';
+import Pagination from '@/src/components/Pagination';
+import { useRouter } from 'next/router';
+import PokemonList from '@/src/components/PokemonList';
+import PokemonsLoadingScreen from '@/src/components/PokemonsLoadingScreen';
+import PokemonDetailsDialog from '@/src/components/PokemonDetailsDialog';
 
 const Logo = styled(LogoIcon)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
@@ -17,25 +22,16 @@ const Layout = styled(Box)(() => ({
   marginTop: 69
 }));
 
-const PokemonCardsWrapper = styled(Box)(() => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  padding: '69px 0',
-  justifyContent: 'center',
-  gap: 23
-}));
-
-const LoadMoreButton = styled(Button)(() => ({
-  padding: '10px 16px',
-  color: '#2196F3',
-  background: '#F2F9FE',
-  boxShadow:
-    '0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0, 0, 0, 0.12), 0px 3px 5px 0px rgba(0, 0, 0, 0.20)',
-  width: 154,
-  margin: '0 auto 69px'
-}));
-
 export default function Home() {
+  const router = useRouter();
+
+  const { data, isLoading, isFetching, isError } = useGetPokemonsQuery(router.query, {
+    refetchOnFocus: false,
+    skip: !router.isReady
+  });
+
+  const pages = Math.ceil((data?.count ?? 0) / 20);
+
   return (
     <>
       <Head>
@@ -45,15 +41,24 @@ export default function Home() {
         <link rel='icon' href='/favicon.ico' />
       </Head>
       <Container>
+        <PokemonDetailsDialog />
         <Layout>
           <Logo sx={{ mx: 'auto' }} />
           <PokemonFilter />
-          <PokemonCardsWrapper>
-            {new Array(8).fill(0).map((_, id) => (
-              <PokemonCard key={id} />
-            ))}
-          </PokemonCardsWrapper>
-          <LoadMoreButton>Load More</LoadMoreButton>
+          {isError ? (
+            <Typography align='center'>An Error has occurred please try again later</Typography>
+          ) : (
+            <>
+              {isFetching ? <PokemonsLoadingScreen /> : <PokemonList results={data?.results ?? []} />}
+              {!isLoading && data?.results.length ? (
+                <Pagination count={pages} isLoading={isFetching} />
+              ) : (
+                data?.results.length == 0 && (
+                  <Typography align='center'>No pokemon was found with for `{router.query.s ?? ''}`</Typography>
+                )
+              )}
+            </>
+          )}
         </Layout>
       </Container>
     </>

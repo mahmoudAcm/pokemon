@@ -1,23 +1,31 @@
-import { Box, styled, Typography } from '@mui/material';
+import { Box, styled, Tooltip, Typography } from '@mui/material';
 import Image from 'next/image';
+import { useAppDispatch } from '@/src/store';
+import { dialogsActions } from '@/src/slices/dialogs';
+import { DIALOG_IDS } from '@/src/constants';
+import { PokemonApiResponse } from '@/src/types';
 
-const PokemonCardRoot = styled(Box)(() => ({
+const PokemonCardRoot = styled(Box)(({ theme }) => ({
   width: 253,
   border: '11px solid #1D2C5E',
   borderRadius: 16,
-  overflow: 'hidden'
+  overflow: 'hidden',
+  transition: theme.transitions.create('transform'),
+  '&:hover': {
+    transform: 'scale(1.07)'
+  }
 }));
 
-const PokemonImageWrapper = styled(Box)(() => ({
+export const PokemonImageWrapper = styled(Box)(() => ({
   position: 'relative',
   height: 213,
   overflow: 'hidden',
   background: 'linear-gradient(154deg, #C8FF9C 27.68%, #FFDA7A 74.71%, #78DFFF 100%)'
 }));
 
-const PokemonId = styled(Typography)(() => ({
+export const PokemonId = styled(Typography)(() => ({
   position: 'absolute',
-  width: 35,
+  minWidth: 35,
   height: 36,
   borderRadius: 30,
   background: '#374151',
@@ -28,24 +36,28 @@ const PokemonId = styled(Typography)(() => ({
   userSelect: 'none',
   fontSize: 14 / 16 + 'rem',
   lineHeight: 20 / 16,
-  display: 'flex',
-  alignItems: 'center'
+  display: 'grid',
+  placeItems: 'center'
 }));
 
-const PokemonDetails = styled(Box)(() => ({
+export const PokemonDetails = styled(Box)(() => ({
   padding: '15px 21px 40px',
   height: '100%',
   background: '#E5E7EB'
 }));
 
-const PokemonName = styled(Typography)(() => ({
+export const PokemonName = styled(Typography)(() => ({
   fontSize: 18 / 16 + 'rem',
   lineHeight: 28 / 18,
   fontWeight: 800,
-  color: '#1F2937'
+  color: '#1F2937',
+  textTransform: 'capitalize',
+  overflow: 'hidden',
+  whiteSpace: 'nowrap',
+  textOverflow: 'ellipsis'
 }));
 
-const PokemonType = styled(Typography)(() => ({
+export const PokemonType = styled(Typography)(() => ({
   fontSize: 12 / 16 + 'rem',
   lineHeight: 16 / 12,
   fontWeight: 700,
@@ -54,36 +66,49 @@ const PokemonType = styled(Typography)(() => ({
   width: 'fit-content',
   padding: '4px 8px',
   borderRadius: 10,
-  userSelect: 'none'
+  userSelect: 'none',
+  textTransform: 'uppercase'
 }));
 
-const PokemonStat = styled(Typography)(() => ({
+export const PokemonStat = styled(Typography)(() => ({
   fontSize: 12 / 16 + 'rem',
   lineHeight: 16 / 12,
   fontWeight: 500,
   color: '#6B7280',
-  borderRadius: 10
+  borderRadius: 10,
+  textTransform: 'uppercase'
 }));
 
-export default function PokemonCard() {
+export type PokemonCardProps = PokemonApiResponse['results']['0'] & {
+  id: number;
+  imageUrl: string;
+  name: string;
+  type: string;
+};
+
+export default function PokemonCard(props: PokemonCardProps) {
+  const dispatch = useAppDispatch();
+
   return (
-    <PokemonCardRoot>
+    <PokemonCardRoot
+      onClick={() => {
+        dispatch(dialogsActions.showDialog({ id: DIALOG_IDS.POKEMON_DETAILS, details: { ...props } }));
+      }}
+    >
       <PokemonImageWrapper>
-        <Image
-          src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png'
-          alt='pokemon image'
-          fill
-          sizes='@media(min-width: 10vw)'
-          priority
-        />
-        <PokemonId>001</PokemonId>
+        {props.imageUrl && (
+          <Image src={props.imageUrl} alt='pokemon image' fill sizes='@media(min-width: 10vw)' priority />
+        )}
+        <PokemonId>{props.id}</PokemonId>
       </PokemonImageWrapper>
       <PokemonDetails>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <PokemonName>Bulbasaur</PokemonName>
-          <PokemonType>Grass</PokemonType>
+          <Tooltip title={props.name} placement='left' arrow>
+            <PokemonName>{props.name}</PokemonName>
+          </Tooltip>
+          <PokemonType>{props.type}</PokemonType>
         </Box>
-        <PokemonStat>Seed Pokémon</PokemonStat>
+        <PokemonStat>{props.type} Pokémon</PokemonStat>
       </PokemonDetails>
     </PokemonCardRoot>
   );
