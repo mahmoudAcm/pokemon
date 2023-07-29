@@ -1,5 +1,39 @@
 import Head from 'next/head';
-import { Typography } from '@mui/material';
+import { Box, Button, Container, styled } from '@mui/material';
+import LogoIcon from '@/src/icons/LogoIcon';
+import PokemonFilter from '@/src/components/PokemonFilter';
+import PokemonCard from '@/src/components/PokemonCard';
+
+const Logo = styled(LogoIcon)(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
+    width: '100% !important',
+    height: 'fit-content !important'
+  }
+}));
+
+const Layout = styled(Box)(() => ({
+  display: 'grid',
+  justifyContent: 'center',
+  marginTop: 69
+}));
+
+const PokemonCardsWrapper = styled(Box)(() => ({
+  display: 'flex',
+  flexWrap: 'wrap',
+  padding: '69px 0',
+  justifyContent: 'center',
+  gap: 23
+}));
+
+const LoadMoreButton = styled(Button)(() => ({
+  padding: '10px 16px',
+  color: '#2196F3',
+  background: '#F2F9FE',
+  boxShadow:
+    '0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0, 0, 0, 0.12), 0px 3px 5px 0px rgba(0, 0, 0, 0.20)',
+  width: 154,
+  margin: '0 auto 69px'
+}));
 
 export default function Home() {
   return (
@@ -10,6 +44,18 @@ export default function Home() {
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         <link rel='icon' href='/favicon.ico' />
       </Head>
+      <Container>
+        <Layout>
+          <Logo sx={{ mx: 'auto' }} />
+          <PokemonFilter />
+          <PokemonCardsWrapper>
+            {new Array(8).fill(0).map((_, id) => (
+              <PokemonCard key={id} />
+            ))}
+          </PokemonCardsWrapper>
+          <LoadMoreButton>Load More</LoadMoreButton>
+        </Layout>
+      </Container>
     </>
   );
 }
